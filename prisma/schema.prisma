@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model category {
+  categoryId   Int     @id @default(autoincrement())
+  categoryName String  @unique(map: "categoryName") @db.VarChar(255)
+  plate        plate[]
+}
+
+model client {
+  clientId    Int         @id @default(autoincrement())
+  clientEmail String      @unique(map: "clientEmail") @db.VarChar(255)
+  subscribe   subscribe[]
+}
+
+model employee {
+  employeeId       Int        @id @default(autoincrement())
+  employeeName     String     @db.VarChar(255)
+  employeeFunction String     @db.VarChar(255)
+  employeePicture  String     @db.VarChar(255)
+  restaurantId     Int
+  restaurant       restaurant @relation(fields: [restaurantId], references: [restaurantId], onDelete: NoAction, onUpdate: NoAction, map: "employee_ibfk_1")
+
+  @@index([restaurantId], map: "restaurantId")
+}
+
+model plate {
+  plateId          Int      @id @default(autoincrement())
+  plateName        String   @db.VarChar(255)
+  platePrice       Int
+  plateDescription String   @db.VarChar(255)
+  platePicture     String   @db.VarChar(255)
+  categoryId       Int
+  category         category @relation(fields: [categoryId], references: [categoryId], onDelete: NoAction, onUpdate: NoAction, map: "plate_ibfk_1")
+  serve            serve[]
+
+  @@index([categoryId], map: "categoryId")
+}
+
+model restaurant {
+  restaurantId          Int         @id @default(autoincrement())
+  restaurantName        String      @db.VarChar(255)
+  restaurantLocation    String      @db.VarChar(255)
+  restaurantPhoneNumber String      @db.VarChar(255)
+  restaurantEmail       String      @unique(map: "restaurantEmail") @db.VarChar(255)
+  employee              employee[]
+  serve                 serve[]
+  subscribe             subscribe[]
+}
+
+model serve {
+  restaurantId Int
+  plateId      Int
+  restaurant   restaurant @relation(fields: [restaurantId], references: [restaurantId], onDelete: NoAction, onUpdate: NoAction, map: "serve_ibfk_1")
+  plate        plate      @relation(fields: [plateId], references: [plateId], onDelete: NoAction, onUpdate: NoAction, map: "serve_ibfk_2")
+
+  @@id([restaurantId, plateId])
+  @@index([plateId], map: "plateId")
+}
+
+model subscribe {
+  restaurantId Int
+  clientId     Int
+  restaurant   restaurant @relation(fields: [restaurantId], references: [restaurantId], onDelete: NoAction, onUpdate: NoAction, map: "subscribe_ibfk_1")
+  client       client     @relation(fields: [clientId], references: [clientId], onDelete: NoAction, onUpdate: NoAction, map: "subscribe_ibfk_2")
+
+  @@id([restaurantId, clientId])
+  @@index([clientId], map: "clientId")
+}
